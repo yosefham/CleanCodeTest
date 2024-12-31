@@ -1,39 +1,75 @@
 namespace CleanCodeTest;
 
-public abstract class Shape_Base
+public class Shape_Base
 {
-    public abstract double Area();
+    public virtual float Area() => 0;
+    public virtual int CornerCount() => 0;
 }
 
-public class Square(double side) : Shape_Base
+public class Square(float side) : Shape_Base
 {
 
-    public override double Area()
+    public override float Area()
     {
         return side * side;
     }
+
+    public override int CornerCount()
+    {
+        return 4;
+    }
 }
 
-public class Rectangle(double Width, double Height) : Shape_Base
+public class Rectangle(float Width, float Height) : Shape_Base
 {
-    public override double Area()
+    public override float Area()
     {
         return Width * Height;
     }
-}
 
-public class Triangle(double Base, double Height) : Shape_Base
-{
-    public override double Area()
+    public override int CornerCount()
     {
-        return (double)(0.5 * Base * Height);
+        return 4;
     }
 }
 
-public class Circle(double Radius) : Shape_Base
+public class Triangle(float Base, float Height) : Shape_Base
 {
-    public override double Area()
+    public override float Area()
     {
-        return (double)(Math.PI * Radius * Radius);
+        return (float)(0.5 * Base * Height);
     }
+
+    public override int CornerCount()
+    {
+        return 3;
+    }
+}
+
+public class Circle(float Radius) : Shape_Base
+{
+    public override float Area()
+    {
+        return (float)(Math.PI * Radius * Radius);
+    }
+
+    public override int CornerCount()
+    {
+        return 0;
+    }
+}
+
+public enum ShapeType
+{
+    Square = 0,
+    Rectangle = 1,
+    Triangle = 2,
+    Circle = 3
+}
+
+public class ShapeUnion
+{
+    public ShapeType Type { get; set; }
+    public float Width { get; set; }
+    public float Height { get; set; }
 }
