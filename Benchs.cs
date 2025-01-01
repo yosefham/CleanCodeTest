@@ -1,11 +1,20 @@
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Reports;
 
 namespace CleanCodeTest;
 
-// [MemoryDiagnoser]
+class Config : ManualConfig
+{
+    public Config() => SummaryStyle = SummaryStyle.Default.WithRatioStyle(RatioStyle.Trend);
+}
+
+[MemoryDiagnoser]
+[Config(typeof(Config))]
 public class Benchs
 {
-    private const int MAX_SHAPES = 5_000_000;
+    private const int MAX_SHAPES = 1_000_000;
     private ShapeUnion[] ShapeUnions = [];
     private Shape_Base[] Shapes = [];
 
@@ -37,7 +46,7 @@ public class Benchs
 
     }
 
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public float TotalAreaVTBL()
     {
         float accum = 0.0f;
@@ -65,9 +74,6 @@ public class Benchs
         float accum = accum0 + accum1 + accum2 + accum3;
         return accum;
     }
-
-
-
 
 
     [Benchmark]
@@ -115,9 +121,6 @@ public class Benchs
 
 
 
-
-
-
     [Benchmark]
     public float TotalAreaTable()
     {
@@ -158,7 +161,7 @@ public class Benchs
 
 
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public float TotalCornerAreaVTBL()
     {
         float accum = 0.0f;
@@ -185,6 +188,49 @@ public class Benchs
         }
         float accum = accum0 + accum1 + accum2 + accum3;
         return accum;
+    }
+
+    [Benchmark]
+    public float TotalCornerAreaSwitch()
+    {
+        float accum = 0.0f;
+        for (int shapeIndex = 0; shapeIndex < ShapeUnions.Length; shapeIndex++)
+        {
+            accum += GetCornerAreaSwitch(ShapeUnions[shapeIndex]);
+        }
+        return accum;
+    }
+
+    [Benchmark]
+    public float TotalCornerAreaSwitch4()
+    {
+
+        float accum0 = 0.0f;
+        float accum1 = 0.0f;
+        float accum2 = 0.0f;
+        float accum3 = 0.0f;
+        for (int shapeIndex = 0; shapeIndex < ShapeUnions.Length; shapeIndex += 4)
+        {
+            accum0 += GetCornerAreaSwitch(ShapeUnions[shapeIndex]);
+            accum1 += GetCornerAreaSwitch(ShapeUnions[shapeIndex + 1]);
+            accum2 += GetCornerAreaSwitch(ShapeUnions[shapeIndex + 3]);
+            accum3 += GetCornerAreaSwitch(ShapeUnions[shapeIndex + 3]);
+        }
+        float accum = accum0 + accum1 + accum2 + accum3;
+        return accum;
+    }
+
+    public static float GetCornerAreaSwitch(ShapeUnion shape)
+    {
+        float result = shape.Type switch
+        {
+            ShapeType.Square => 1.0f / (1.0f + 4) * shape.Width * shape.Width,
+            ShapeType.Rectangle => 1.0f / (1.0f + 4) * shape.Width * shape.Height,
+            ShapeType.Triangle => 0.5f / (1.0f + 3) * shape.Width * shape.Height,
+            ShapeType.Circle => (float)Math.PI * shape.Width * shape.Width,
+            _ => 0
+        };
+        return result;
     }
 
 
